@@ -1,6 +1,6 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import jwt_decode from "jwt-decode";
 
 export default function Home() {
@@ -8,22 +8,26 @@ export default function Home() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [uhid, setUhid] = useState(null);
-
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const [token, setToken] = useState(null);
 
   // Decode JWT to get uhid (sub)
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwt_decode(token);
-        console.log("Decoded Token:", decoded);
-        setUhid(decoded.sub); // sub contains the uhid
-      } catch (error) {
-        console.error("Invalid token:", error);
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get("token");
+      setToken(tokenFromUrl);
+
+      if (tokenFromUrl) {
+        try {
+          const decoded = jwt_decode(tokenFromUrl);
+          console.log("Decoded Token:", decoded);
+          setUhid(decoded.sub); // sub contains the uhid
+        } catch (error) {
+          console.error("Invalid token:", error);
+        }
       }
     }
-  }, [token]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,14 +38,13 @@ export default function Home() {
     }
 
     const res = await fetch(`https://developer-testing-promapi.onrender.com/reset_password?token=${token}`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    uhid: uhid,
-    new_password: password,
-  }),
-});
-
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uhid: uhid,
+        new_password: password,
+      }),
+    });
 
     if (res.ok) {
       setSubmitted(true);

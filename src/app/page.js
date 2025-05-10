@@ -1,12 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import jwt_decode from "jwt-decode";
 
 export default function Home() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [uhid, setUhid] = useState(null);
 
-  const handleSubmit = (e) => {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  // Decode JWT to get uhid (sub)
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwt_decode(token);
+        console.log("Decoded Token:", decoded);
+        setUhid(decoded.sub); // sub contains the uhid
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
+    }
+  }, [token]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -14,10 +33,22 @@ export default function Home() {
       return;
     }
 
-    // Replace this with your API call
-    console.log("Resetting password to:", password);
+    const res = await fetch(`http://127.0.0.1:8000/reset_password?token=${token}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    uhid: uhid,
+    new_password: password,
+  }),
+});
 
-    setSubmitted(true);
+
+    if (res.ok) {
+      setSubmitted(true);
+    } else {
+      const data = await res.json();
+      alert(`Error: ${data.detail}`);
+    }
   };
 
   return (

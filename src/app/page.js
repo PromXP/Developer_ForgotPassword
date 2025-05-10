@@ -33,7 +33,7 @@ export default function Home() {
       return;
     }
 
-    const res = await fetch(`http://127.0.0.1:8000/reset_password?token=${token}`, {
+    const res = await fetch(`https://developer-testing-promapi.onrender.com/reset_password?token=${token}`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({

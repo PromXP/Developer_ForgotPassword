@@ -93,6 +93,9 @@ export default function Home() {
             >
               Reset Password
             </button>
+                <div className="text-red mb-1">
+              <p>*The Link will expire in 10 minutes</p>
+            </div>
           </form>
         )}
       </div>

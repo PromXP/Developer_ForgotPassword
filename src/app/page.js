@@ -10,6 +10,15 @@ export default function Home() {
   const [uhid, setUhid] = useState(null);
   const [token, setToken] = useState(null);
 
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const showWarning = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 4000);
+  };
+
   // Decode JWT to get uhid (sub)
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -33,72 +42,88 @@ export default function Home() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      showWarning("Passwords do not match!");
       return;
     }
 
-    const res = await fetch(`https://developer-testing-promapi.onrender.com/reset_password?token=${token}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        uhid: uhid,
-        new_password: password,
-      }),
-    });
+    const res = await fetch(
+      `https://developer-testing-promapi.onrender.com/reset_password?token=${token}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uhid: uhid,
+          new_password: password,
+        }),
+      }
+    );
 
     if (res.ok) {
       setSubmitted(true);
     } else {
       const data = await res.json();
-      alert(`Error: ${data.detail}`);
+      showWarning(`Error: ${data.detail}`);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center text-black">Reset Password</h2>
+    <>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded shadow-md w-full max-w-sm">
+          <h2 className="text-2xl font-bold mb-6 text-center text-black">
+            Reset Password
+          </h2>
 
-        {submitted ? (
-          <p className="text-green-600 text-center">
-            Your password has been reset successfully!
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-gray-700 mb-1">New Password</label>
-              <input
-                type="text"
-                className="w-full text-black px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          {submitted ? (
+            <p className="text-green-600 text-center">
+              Your password has been reset successfully!
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-gray-700 mb-1">New Password</label>
+                <input
+                  type="text"
+                  className="w-full text-black px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-gray-700 mb-1">Confirm New Password</label>
-              <input
-                type="password"
-                className="w-full text-black px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-gray-700 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  className="w-full text-black px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-            >
-              Reset Password
-            </button>
-                <div className="text-red-700 mb-1">
-              <p>*The Link will expire in 10 minutes</p>
-            </div>
-          </form>
-        )}
+              <button
+                type="submit"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+              >
+                Reset Password
+              </button>
+              <div className="text-red-700 mb-1">
+                <p>*The Link will expire in 10 minutes</p>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+      {showAlert && (
+        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-3 rounded-lg shadow-lg animate-fade-in-out">
+            {alertMessage}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
